@@ -84,49 +84,51 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-base-200">
-      {/* Navigation */}
-      <div className="navbar bg-base-100 shadow-lg">
-        <div className="flex-1">
-          <Link
-            to="/"
-            className="text-xl font-semibold flex items-center gap-2"
-          >
-            <Building2 className="w-6 h-6" />
-            SecureBank
-          </Link>
-        </div>
-        <div className="flex-none gap-4">
-          <div className="form-control flex-row gap-2 items-center">
-            <Palette className="w-4 h-4" />
-            <select
-              className="select select-bordered select-sm"
-              value={theme}
-              onChange={handleThemeChange}
+      {/* Navigation - Only shown when user is logged in */}
+      {user && (
+        <div className="navbar bg-base-100 shadow-lg px-4 sm:px-6 lg:px-8">
+          <div className="flex-1">
+            <Link
+              to="/"
+              className="text-xl font-semibold flex items-center gap-2"
             >
-              {themes.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+              <Building2 className="w-6 h-6" />
+              <span className="hidden sm:inline">SecureBank</span>
+            </Link>
           </div>
-          {user && (
-            <div className="flex items-center gap-4">
-              <span className="text-sm">Welcome, {user.email}</span>
+          <div className="flex-none gap-2 sm:gap-4">
+            <div className="form-control flex-row gap-2 items-center">
+              <Palette className="w-4 h-4" />
+              <select
+                className="select select-bordered select-sm max-w-[8rem] sm:max-w-xs"
+                value={theme}
+                onChange={handleThemeChange}
+              >
+                {themes.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-sm hidden sm:inline">
+                Welcome, {user.email}
+              </span>
               <button
                 onClick={handleSignOut}
                 className="btn btn-ghost btn-sm gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
-      <div className="container mx-auto">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <Routes>
           <Route
             path="/"
@@ -163,12 +165,20 @@ function AppContent() {
 
       {/* Toast Container */}
       <Toaster
-        position="top-right"
+        position="top-center"
+        reverseOrder={false}
+        gutter={8}
+        containerStyle={{
+          top: 40,
+        }}
         toastOptions={{
-          duration: 3000,
+          duration: 4000,
+          className: "text-sm sm:text-base",
           style: {
             background: "var(--fallback-b1,oklch(var(--b1)))",
             color: "var(--fallback-bc,oklch(var(--bc)))",
+            maxWidth: "400px",
+            padding: "16px",
           },
           success: {
             iconTheme: {
@@ -181,6 +191,10 @@ function AppContent() {
               primary: "var(--fallback-er,oklch(var(--er)))",
               secondary: "var(--fallback-erc,oklch(var(--erc)))",
             },
+            duration: 5000,
+          },
+          loading: {
+            duration: Infinity,
           },
         }}
       />

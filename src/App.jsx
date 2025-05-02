@@ -5,13 +5,14 @@ import {
   Route,
   Link,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import "@fontsource/poppins";
 import "daisyui/dist/full.css";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
-import { LogOut, Palette, Building2 } from "lucide-react";
+import { LogOut, Palette, Building2, Send, History } from "lucide-react";
 
 // Components
 import Register from "./components/Register";
@@ -20,6 +21,7 @@ import PaymentForm from "./components/PaymentForm";
 import PaymentVerification from "./components/PaymentVerification";
 import EmployeePortal from "./components/EmployeePortal";
 import Confirmation from "./components/Confirmation";
+import Transactions from "./components/Transactions";
 
 const themes = [
   { name: "Winter", value: "winter" },
@@ -52,6 +54,7 @@ function ProtectedRoute({ children }) {
 
 function AppContent() {
   const { user, signOut } = useAuth();
+  const location = useLocation();
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("theme") || "winter";
   });
@@ -84,7 +87,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="min-h-screen bg-base-200 ">
       {/* Navigation - Only shown when user is logged in */}
       {user && (
         <div className="navbar bg-base-100 shadow-lg px-4 sm:px-6 lg:px-8">
@@ -98,8 +101,27 @@ function AppContent() {
             </Link>
           </div>
           <div className="flex-none gap-2 sm:gap-4">
+            <div className="tabs tabs-boxed">
+              <Link
+                to="/"
+                className={`tab ${
+                  location.pathname === "/" ? "tab-active" : ""
+                }`}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Send Money</span>
+              </Link>
+              <Link
+                to="/transactions"
+                className={`tab ${
+                  location.pathname === "/transactions" ? "tab-active" : ""
+                }`}
+              >
+                <History className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Transactions</span>
+              </Link>
+            </div>
             <div className="form-control flex-row gap-2 items-center">
-              <Palette className="w-4 h-4" />
               <select
                 className="select select-bordered select-sm max-w-[8rem] sm:max-w-xs"
                 value={theme}
@@ -150,6 +172,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <PaymentVerification />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <Transactions />
               </ProtectedRoute>
             }
           />

@@ -27,6 +27,12 @@ export const initializePayment = async (email, amount) => {
 
 export const verifyPayment = async (reference) => {
   try {
+    console.log("Verifying payment with reference:", reference);
+    console.log(
+      "Using Paystack secret key:",
+      PAYSTACK_SECRET_KEY ? "Present" : "Missing"
+    );
+
     const response = await fetch(
       `${PAYSTACK_API_URL}/transaction/verify/${reference}`,
       {
@@ -36,7 +42,26 @@ export const verifyPayment = async (reference) => {
       }
     );
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Paystack API error response:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+      throw new Error(
+        `Paystack API error: ${response.status} ${response.statusText}`
+      );
+    }
+
     const data = await response.json();
+    console.log("Paystack verification response:", data);
+
+    if (!data.status) {
+      console.error("Paystack verification failed:", data);
+      throw new Error(data.message || "Payment verification failed");
+    }
+
     return data;
   } catch (error) {
     console.error("Error verifying payment:", error);

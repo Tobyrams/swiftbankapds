@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyPayment } from "../lib/paystack";
+import { supabase } from "../lib/supabase";
 import { toast } from "react-hot-toast";
 
 const PaymentVerification = () => {
@@ -12,6 +13,8 @@ const PaymentVerification = () => {
   useEffect(() => {
     const verifyTransaction = async () => {
       const reference = searchParams.get("reference");
+      console.log("Payment reference:", reference);
+
       if (!reference) {
         toast.error("No payment reference found");
         navigate("/payment");
@@ -19,31 +22,73 @@ const PaymentVerification = () => {
       }
 
       try {
+        console.log("Verifying payment with reference:", reference);
         const response = await verifyPayment(reference);
+        console.log("Paystack verification response:", response);
 
         if (response.status) {
           const recipientEmail = localStorage.getItem("recipientEmail");
+          console.log("Recipient email from localStorage:", recipientEmail);
+
           if (recipientEmail) {
-            // Here you would typically update your database with the transaction details
-            // and handle the transfer to the recipient
-            console.log("Payment successful:", {
-              amount: response.data.amount / 100,
-              recipientEmail,
-              reference: response.data.reference,
-            });
+            // Store transaction in Supabase
+            const transactionData = {
+              paystack_transaction_id: response.data.id,
+              amount: response.data.amount / 100, // Convert from kobo to currency
+              currency: response.data.currency,
+              status: response.data.status,
+              customer_email: response.data.customer.email,
+              customer_id: response.data.customer.id,
+              metadata: {
+                recipient_email: recipientEmail,
+                reference: response.data.reference,
+                channel: response.data.channel,
+                paid_at: response.data.paid_at,
+              },
+            };
+
+            console.log(
+              "Attempting to insert transaction into Supabase:",
+              transactionData
+            );
+
+            // Check if transaction already exists
+            const { data: existing, error: fetchError } = await supabase
+              .from("transactions")
+              .select("id")
+              .eq("paystack_transaction_id", response.data.id)
+              .single();
+
+            if (fetchError && fetchError.code !== "PGRST116") {
+              // Only throw if it's not a 'no rows found' error
+              throw fetchError;
+            }
+
+            if (!existing) {
+              // Insert only if not already present
+              const { error: insertError } = await supabase
+                .from("transactions")
+                .insert(transactionData);
+              if (insertError) throw insertError;
+            }
+
+            console.log("Transaction inserted successfully:");
 
             setVerificationStatus("success");
             toast.success("Payment successful!");
+            localStorage.removeItem("recipientEmail");
           } else {
+            console.error("No recipient email found in localStorage");
             setVerificationStatus("error");
             toast.error("Recipient information not found");
           }
         } else {
+          console.error("Paystack verification failed:", response);
           setVerificationStatus("error");
           toast.error("Payment verification failed");
         }
       } catch (error) {
-        console.error("Verification error:", error);
+        console.error("Verification error details:", error);
         setVerificationStatus("error");
         toast.error("An error occurred while verifying your payment");
       } finally {

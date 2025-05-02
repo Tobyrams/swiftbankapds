@@ -17,6 +17,7 @@ import { LogOut, Palette, Building2 } from "lucide-react";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import PaymentForm from "./components/PaymentForm";
+import PaymentVerification from "./components/PaymentVerification";
 import EmployeePortal from "./components/EmployeePortal";
 import Confirmation from "./components/Confirmation";
 
@@ -141,6 +142,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <PaymentForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment/verify"
+            element={
+              <ProtectedRoute>
+                <PaymentVerification />
               </ProtectedRoute>
             }
           />

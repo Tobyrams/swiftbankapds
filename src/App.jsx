@@ -15,7 +15,6 @@ import toast, { Toaster } from "react-hot-toast";
 import { LogOut, Building2, Send, History } from "lucide-react";
 
 // Components
-import Register from "./components/Register";
 import Login from "./components/Login";
 import PaymentForm from "./components/PaymentForm";
 import PaymentVerification from "./components/PaymentVerification";
@@ -162,7 +161,7 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-          <Route path="/register" element={<Register />} />
+          
           <Route path="/login" element={<Login />} />
           <Route
             path="/payment/verify"

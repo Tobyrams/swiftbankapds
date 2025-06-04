@@ -105,7 +105,7 @@ const PaymentVerification = () => {
 
       try {
         const response = await verifyPayment(reference);
-        // console.log("Payment verification response:", response);
+       
 
         if (response.status) {
           await processSuccessfulPayment(response);
@@ -116,7 +116,7 @@ const PaymentVerification = () => {
           );
         }
       } catch (error) {
-        // console.error("Verification error:", error);
+        
         handleVerificationError(
           error,
           error.message || "An error occurred while verifying your payment"

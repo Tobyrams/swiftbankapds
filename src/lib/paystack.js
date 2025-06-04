@@ -27,7 +27,7 @@ export const initializePayment = async (email, amount) => {
 
 export const verifyPayment = async (reference) => {
   try {
-    // console.log("Verifying payment with reference:", reference);
+    
     
 
     const response = await fetch(

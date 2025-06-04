@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { initializePayment } from "../lib/paystack";
+import { initializePayment, verifyPayment } from "../lib/paystack";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import { Mail, User, DollarSign, Send } from "lucide-react";
-import { verifyPayment } from "../lib/paystack";
 import { supabase } from "../lib/supabase";
 
 const PaymentForm = () => {

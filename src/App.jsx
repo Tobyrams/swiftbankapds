@@ -10,9 +10,8 @@ import {
 import "@fontsource/poppins";
 import "daisyui/dist/full.css";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { Toaster } from "react-hot-toast";
-import toast from "react-hot-toast";
-import { LogOut, Palette, Building2, Send, History } from "lucide-react";
+import toast,{ Toaster } from "react-hot-toast";
+import { LogOut, Building2, Send, History } from "lucide-react";
 
 // Components
 import Register from "./components/Register";

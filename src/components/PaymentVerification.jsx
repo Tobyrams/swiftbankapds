@@ -12,7 +12,8 @@ const PaymentVerification = () => {
 
   const handleVerificationError = (error, message) => {
     setVerificationStatus("error");
-    toast.error(message);
+    console.error("Verification error details:", error);
+    toast.error(error?.message || message);
   };
 
   const checkTransactionExists = async (transactionId) => {
@@ -48,7 +49,15 @@ const PaymentVerification = () => {
       .from("transactions")
       .insert(transactionData);
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      // If it's a duplicate key error, we can treat it as success
+      if (insertError.code === "23505") {
+        // PostgreSQL unique violation code
+        console.log("Transaction already exists, treating as success");
+        return;
+      }
+      throw insertError;
+    }
   };
 
   const processSuccessfulPayment = async (response) => {
@@ -96,16 +105,21 @@ const PaymentVerification = () => {
 
       try {
         const response = await verifyPayment(reference);
+        // console.log("Payment verification response:", response);
 
         if (response.status) {
           await processSuccessfulPayment(response);
         } else {
-          handleVerificationError(response, "Payment verification failed");
+          handleVerificationError(
+            response,
+            response.message || "Payment verification failed"
+          );
         }
       } catch (error) {
+        // console.error("Verification error:", error);
         handleVerificationError(
           error,
-          "An error occurred while verifying your payment"
+          error.message || "An error occurred while verifying your payment"
         );
       } finally {
         setVerifying(false);

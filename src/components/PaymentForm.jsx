@@ -49,7 +49,7 @@ const PaymentForm = () => {
 
     try {
       // Verify recipient exists in bank_profiles
-      const recipient = await verifyRecipientEmail(formData.recipientEmail);
+       await verifyRecipientEmail(formData.recipientEmail);
 
       // Initialize payment
       const response = await initializePayment(formData.email, formData.amount);

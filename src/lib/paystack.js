@@ -27,11 +27,8 @@ export const initializePayment = async (email, amount) => {
 
 export const verifyPayment = async (reference) => {
   try {
-    console.log("Verifying payment with reference:", reference);
-    console.log(
-      "Using Paystack secret key:",
-      PAYSTACK_SECRET_KEY ? "Present" : "Missing"
-    );
+    // console.log("Verifying payment with reference:", reference);
+    
 
     const response = await fetch(
       `${PAYSTACK_API_URL}/transaction/verify/${reference}`,

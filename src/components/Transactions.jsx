@@ -8,58 +8,57 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const handleTransactionChange = (payload) => {
+    if (payload.eventType === "INSERT") {
+      setTransactions((prev) => [payload.new, ...prev]);
+    } else if (payload.eventType === "UPDATE") {
+      setTransactions((prev) =>
+        prev.map((tx) => (tx.id === payload.new.id ? payload.new : tx))
+      );
+    } else if (payload.eventType === "DELETE") {
+      setTransactions((prev) => prev.filter((tx) => tx.id !== payload.old.id));
+    }
+  };
+
+  const subscribeToTransactions = () => {
+    return supabase
+      .channel("transactions_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "transactions",
+          filter: `customer_email=eq.${user.email}`,
+        },
+        handleTransactionChange
+      )
+      .subscribe();
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("customer_email", user.email)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setTransactions(data || []);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      toast.error("Failed to load transactions");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("transactions")
-          .select("*")
-          .eq("customer_email", user.email)
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        setTransactions(data || []);
-      } catch (error) {
-        console.error("Error fetching transactions:", error);
-        toast.error("Failed to load transactions");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (user) {
       fetchTransactions();
-
-      // Subscribe to real-time updates
-      const subscription = supabase
-        .channel("transactions_changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "transactions",
-            filter: `customer_email=eq.${user.email}`,
-          },
-          (payload) => {
-            if (payload.eventType === "INSERT") {
-              setTransactions((prev) => [payload.new, ...prev]);
-            } else if (payload.eventType === "UPDATE") {
-              setTransactions((prev) =>
-                prev.map((tx) => (tx.id === payload.new.id ? payload.new : tx))
-              );
-            } else if (payload.eventType === "DELETE") {
-              setTransactions((prev) =>
-                prev.filter((tx) => tx.id !== payload.old.id)
-              );
-            }
-          }
-        )
-        .subscribe();
-
-      return () => {
-        subscription.unsubscribe();
-      };
+      const subscription = subscribeToTransactions();
+      return () => subscription.unsubscribe();
     }
   }, [user]);
 

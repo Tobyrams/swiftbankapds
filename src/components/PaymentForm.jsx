@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-import { initializePayment, verifyPayment } from "../lib/paystack";
+import { initializePayment } from "../lib/paystack";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import { Mail, User, DollarSign, Send } from "lucide-react";
+import { supabase } from "../lib/supabase";
 
 const PaymentForm = () => {
   const { user } = useAuth();
@@ -28,11 +29,29 @@ const PaymentForm = () => {
     }));
   };
 
+  const verifyRecipientEmail = async (email) => {
+    const { data, error } = await supabase
+      .from("bank_profiles")
+      .select("email, full_name")
+      .eq("email", email)
+      .single();
+
+    if (error) {
+      throw new Error("Recipient not found in our system");
+    }
+
+    return data;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Verify recipient exists in bank_profiles
+      const recipient = await verifyRecipientEmail(formData.recipientEmail);
+
+      // Initialize payment
       const response = await initializePayment(formData.email, formData.amount);
 
       if (response.status) {
@@ -44,8 +63,14 @@ const PaymentForm = () => {
         toast.error("Failed to initialize payment");
       }
     } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("An error occurred while processing your payment");
+      if (error.message === "Recipient not found in our system") {
+        toast.error(
+          "The recipient email is not registered in our system. Please ensure you have the correct email address."
+        );
+      } else {
+        console.error("Payment error:", error);
+        toast.error("An error occurred while processing your payment");
+      }
     } finally {
       setLoading(false);
     }

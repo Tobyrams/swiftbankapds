@@ -88,7 +88,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="email">
                 <span className="label-text flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   Email
@@ -106,7 +106,7 @@ export default function Login() {
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="password">
                 <span className="label-text flex items-center gap-2">
                   <Lock className="w-4 h-4" />
                   Password

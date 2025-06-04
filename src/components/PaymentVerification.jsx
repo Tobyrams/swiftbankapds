@@ -8,89 +8,106 @@ const PaymentVerification = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [verifying, setVerifying] = useState(true);
-  const [verificationStatus, setVerificationStatus] = useState(null);
+  const [verificationStatus, setVerificationStatus] = useState("pending");
+
+  const handleVerificationError = (error, message) => {
+    // console.error(message, error);
+    setVerificationStatus("error");
+    toast.error(message);
+  };
+
+  const checkTransactionExists = async (transactionId) => {
+    const { data: existing, error: fetchError } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("paystack_transaction_id", transactionId)
+      .single();
+
+    if (fetchError && fetchError.code !== "PGRST116") {
+      throw fetchError;
+    }
+
+    return existing;
+  };
+
+  const verifyRecipientEmail = async (email) => {
+    const { data, error } = await supabase
+      .from("bank_profiles")
+      .select("email")
+      .eq("email", email)
+      .single();
+
+    if (error) {
+      throw new Error("Recipient not found in our system");
+    }
+
+    return data;
+  };
+
+  const insertTransaction = async (transactionData) => {
+    const { error: insertError } = await supabase
+      .from("transactions")
+      .insert(transactionData);
+
+    if (insertError) throw insertError;
+  };
+
+  const processSuccessfulPayment = async (response) => {
+    const recipientEmail = localStorage.getItem("recipientEmail");
+    if (!recipientEmail) {
+      throw new Error("No recipient email found");
+    }
+
+    // Verify recipient exists in bank_profiles
+    await verifyRecipientEmail(recipientEmail);
+
+    const transactionData = {
+      paystack_transaction_id: response.data.id,
+      amount: response.data.amount / 100,
+      currency: response.data.currency,
+      status: response.data.status,
+      customer_email: response.data.customer.email,
+      customer_id: response.data.customer.id,
+      metadata: {
+        recipient_email: recipientEmail,
+        reference: response.data.reference,
+        channel: response.data.channel,
+        paid_at: response.data.paid_at,
+      },
+    };
+
+    const existingTransaction = await checkTransactionExists(response.data.id);
+    if (!existingTransaction) {
+      await insertTransaction(transactionData);
+    }
+
+    localStorage.removeItem("recipientEmail");
+    setVerificationStatus("success");
+    toast.success("Payment successful!");
+  };
 
   useEffect(() => {
     const verifyTransaction = async () => {
       const reference = searchParams.get("reference");
-      console.log("Payment reference:", reference);
-
       if (!reference) {
-        toast.error("No payment reference found");
+        handleVerificationError(null, "No payment reference found");
         navigate("/payment");
         return;
       }
 
       try {
-        console.log("Verifying payment with reference:", reference);
         const response = await verifyPayment(reference);
-        console.log("Paystack verification response:", response);
 
         if (response.status) {
-          const recipientEmail = localStorage.getItem("recipientEmail");
-          console.log("Recipient email from localStorage:", recipientEmail);
-
-          if (recipientEmail) {
-            // Store transaction in Supabase
-            const transactionData = {
-              paystack_transaction_id: response.data.id,
-              amount: response.data.amount / 100, // Convert from kobo to currency
-              currency: response.data.currency,
-              status: response.data.status,
-              customer_email: response.data.customer.email,
-              customer_id: response.data.customer.id,
-              metadata: {
-                recipient_email: recipientEmail,
-                reference: response.data.reference,
-                channel: response.data.channel,
-                paid_at: response.data.paid_at,
-              },
-            };
-
-            console.log(
-              "Attempting to insert transaction into Supabase:",
-              transactionData
-            );
-
-            // Check if transaction already exists
-            const { data: existing, error: fetchError } = await supabase
-              .from("transactions")
-              .select("id")
-              .eq("paystack_transaction_id", response.data.id)
-              .single();
-
-            if (fetchError && fetchError.code !== "PGRST116") {
-              // Only throw if it's not a 'no rows found' error
-              throw fetchError;
-            }
-
-            if (!existing) {
-              // Insert only if not already present
-              const { error: insertError } = await supabase
-                .from("transactions")
-                .insert(transactionData);
-              if (insertError) throw insertError;
-            }
-
-            console.log("Transaction inserted successfully:");
-
-            setVerificationStatus("success");
-            toast.success("Payment successful!");
-            localStorage.removeItem("recipientEmail");
-          } else {
-            console.error("No recipient email found in localStorage");
-            setVerificationStatus("error");
-            toast.error("Recipient information not found");
-          }
+          await processSuccessfulPayment(response);
         } else {
-          console.error("Paystack verification failed:", response);
-          setVerificationStatus("error");
-          toast.error("Payment verification failed");
+          handleVerificationError(response, "Payment verification failed");
         }
       } catch (error) {
-        console.error("Verification error details:", error);
-        setVerificationStatus("error");
-        toast.error("An error occurred while verifying your payment");
+        handleVerificationError(
+          error,
+          "An error occurred while verifying your payment"
+        );
       } finally {
         setVerifying(false);
       }

@@ -34,7 +34,6 @@ const themes = [
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
-  const navigate = useNavigate();
   const { user, loading } = useAuth();
 
   if (loading) {

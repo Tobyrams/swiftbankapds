@@ -62,6 +62,17 @@ export default function Transactions() {
     }
   }, [user]);
 
+  const getBadgeClass = (status) => {
+    switch (status) {
+      case "success":
+        return "badge-success";
+      case "failed":
+        return "badge-error";
+      default:
+        return "badge-warning";
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -112,13 +123,7 @@ export default function Transactions() {
                     </td>
                     <td>
                       <span
-                        className={`badge  ${
-                          transaction.status === "success"
-                            ? "badge-success"
-                            : transaction.status === "failed"
-                            ? "badge-error"
-                            : "badge-warning"
-                        }`}
+                        className={`badge ${getBadgeClass(transaction.status)}`}
                       >
                         {transaction.status}
                       </span>

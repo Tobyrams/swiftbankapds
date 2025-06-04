@@ -131,7 +131,7 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="fullName">
                 <span className="label-text flex items-center gap-2">
                   <User className="w-4 h-4" />
                   Full Name
@@ -149,7 +149,7 @@ export default function Register() {
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="email">
                 <span className="label-text flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   Email
@@ -167,7 +167,7 @@ export default function Register() {
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="idNumber">
                 <span className="label-text flex items-center gap-2">
                   <IdCard className="w-4 h-4" />
                   ID Number
@@ -185,7 +185,7 @@ export default function Register() {
                 title="ID Number must be exactly 13 digits"
                 maxLength={13}
               />
-              <label className="label">
+              <label className="label" >
                 <span className="label-text-alt text-base-content/70">
                   Must be exactly 13 digits
                 </span>
@@ -193,7 +193,7 @@ export default function Register() {
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="accountNumber">
                 <span className="label-text flex items-center gap-2">
                   <CreditCard className="w-4 h-4" />
                   Account Number
@@ -219,7 +219,7 @@ export default function Register() {
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="password">
                 <span className="label-text flex items-center gap-2">
                   <Lock className="w-4 h-4" />
                   Password
@@ -243,7 +243,7 @@ export default function Register() {
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="confirmPassword">
                 <span className="label-text flex items-center gap-2">
                   <Lock className="w-4 h-4" />
                   Confirm Password

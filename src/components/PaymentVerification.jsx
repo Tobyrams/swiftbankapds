@@ -11,7 +11,6 @@ const PaymentVerification = () => {
   const [verificationStatus, setVerificationStatus] = useState("pending");
 
   const handleVerificationError = (error, message) => {
-    // console.error(message, error);
     setVerificationStatus("error");
     toast.error(message);
   };

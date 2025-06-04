@@ -7,7 +7,7 @@ import { Mail, User, DollarSign, Send } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 const PaymentForm = () => {
-  const navigate = useNavigate();
+  
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
@@ -54,69 +54,6 @@ const PaymentForm = () => {
     }
   };
 
-  const handleVerification = async (reference) => {
-    try {
-      const response = await verifyPayment(reference);
-
-      if (response.status) {
-        const recipientEmail = localStorage.getItem("recipientEmail");
-        if (recipientEmail) {
-          const transactionData = {
-            paystack_transaction_id: response.data.id,
-            amount: response.data.amount / 100,
-            currency: response.data.currency,
-            status: response.data.status,
-            customer_email: response.data.customer.email,
-            customer_id: response.data.customer.id,
-            metadata: {
-              recipient_email: recipientEmail,
-              reference: response.data.reference,
-              channel: response.data.channel,
-              paid_at: response.data.paid_at,
-            },
-          };
-
-          // Check if transaction already exists
-          const { data: existing, error: fetchError } = await supabase
-            .from("transactions")
-            .select("id")
-            .eq("paystack_transaction_id", response.data.id)
-            .maybeSingle();
-
-          if (fetchError) {
-            // Only show error if it's not a 'no rows found' error
-            throw fetchError;
-          }
-
-          if (!existing) {
-            // Insert only if not already present
-            const { error: insertError } = await supabase
-              .from("transactions")
-              .insert(transactionData);
-            if (insertError) throw insertError;
-          }
-
-          setVerificationStatus("success");
-          if (!existing) {
-            toast.success("Payment successful!");
-          }
-          localStorage.removeItem("recipientEmail");
-        } else {
-          setVerificationStatus("error");
-          toast.error("Recipient information not found");
-        }
-      } else {
-        setVerificationStatus("error");
-        toast.error("Payment verification failed");
-      }
-    } catch (error) {
-      // Only show error toast if not already successful
-      if (verificationStatus !== "success") {
-        setVerificationStatus("error");
-        toast.error("An error occurred while verifying your payment");
-      }
-    }
-  };
 
   return (
     

@@ -6,11 +6,12 @@ import {
   Link,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import "@fontsource/poppins";
 import "daisyui/dist/full.css";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import toast,{ Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { LogOut, Building2, Send, History } from "lucide-react";
 
 // Components
@@ -18,7 +19,6 @@ import Register from "./components/Register";
 import Login from "./components/Login";
 import PaymentForm from "./components/PaymentForm";
 import PaymentVerification from "./components/PaymentVerification";
-import EmployeePortal from "./components/EmployeePortal";
 import Confirmation from "./components/Confirmation";
 import Transactions from "./components/Transactions";
 
@@ -34,6 +34,7 @@ const themes = [
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
+  const navigate = useNavigate();
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -54,6 +55,7 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("theme") || "winter";
   });
@@ -76,6 +78,7 @@ function AppContent() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      navigate("/login");
       toast.success("Signed out successfully", {
         icon: "👋",
       });
@@ -154,18 +157,14 @@ function AppContent() {
         <Routes>
           <Route
             path="/"
-            element={user ? <PaymentForm /> : <Navigate to="/login" />}
-          />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/payment"
             element={
               <ProtectedRoute>
                 <PaymentForm />
               </ProtectedRoute>
             }
           />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
           <Route
             path="/payment/verify"
             element={
@@ -183,14 +182,6 @@ function AppContent() {
             }
           />
           <Route
-            path="/employee"
-            element={
-              <ProtectedRoute>
-                <EmployeePortal />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/confirmation"
             element={
               <ProtectedRoute>
@@ -198,6 +189,7 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
 
